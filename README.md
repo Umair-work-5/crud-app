@@ -38,11 +38,6 @@ React Hot Toast
 
 REST API (JSONPlaceholder for testing)
 
-<h2>📌 Note</h2>
-
-This project uses JSONPlaceholder, a mock REST API.
-Data changes (add, edit, delete) are simulated and will reset on page refresh, as no real backend or database is connected.
-
 <h2>🎯 Purpose</h2>
 
 This project was built to:
