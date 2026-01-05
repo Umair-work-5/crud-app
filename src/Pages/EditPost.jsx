@@ -3,8 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../APIs/axiosInstance";
 import toast from "react-hot-toast";
 
+const STORAGE_KEY = "crud_posts";
+
 const EditPost = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -14,20 +16,36 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axiosInstance.get(`/posts/${id}`);
-        setTitle(response.data.title);
-        setBody(response.data.body);
+        // 1️⃣ Try localStorage first
+        const localPosts =
+          JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+        const localPost = localPosts.find(
+          (post) => post.id.toString() === id
+        );
+
+        if (localPost) {
+          setTitle(localPost.title);
+          setBody(localPost.body);
+        } else {
+          // 2️⃣ Fallback to API
+          const response = await axiosInstance.get(`/posts/${id}`);
+          setTitle(response.data.title);
+          setBody(response.data.body);
+        }
       } catch (error) {
         toast.error("Failed to fetch post");
       } finally {
         setLoading(false);
       }
     };
+
     fetchPost();
   }, [id]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+
     if (!title || !body) {
       toast.error("All fields are required");
       return;
@@ -35,7 +53,25 @@ const EditPost = () => {
 
     try {
       setLoading(true);
+
+      // API update (simulated)
       await axiosInstance.put(`/posts/${id}`, { title, body });
+
+      // Update localStorage
+      const existingPosts =
+        JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+      const updatedPosts = existingPosts.map((post) =>
+        post.id.toString() === id
+          ? { ...post, title, body }
+          : post
+      );
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(updatedPosts)
+      );
+
       toast.success("Post updated successfully!");
       navigate("/posts");
     } catch (error) {
@@ -47,7 +83,9 @@ const EditPost = () => {
 
   if (loading)
     return (
-      <p className="text-center mt-10 text-gray-400 text-lg">Loading post...</p>
+      <p className="text-center mt-10 text-gray-400 text-lg">
+        Loading post...
+      </p>
     );
 
   return (

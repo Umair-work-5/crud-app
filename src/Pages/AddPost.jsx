@@ -19,12 +19,31 @@ const AddPost = () => {
 
     try {
       setLoading(true);
+
+      // API call (simulated backend)
       const response = await axiosInstance.post("/posts", { title, body });
+
+      // Create local post object
+      const newPost = {
+        ...response.data,
+        id: Date.now(), // unique local ID
+      };
+
+      // Get existing posts from localStorage
+      const existingPosts =
+        JSON.parse(localStorage.getItem("crud_posts")) || [];
+
+      // Add new post at top
+      const updatedPosts = [newPost, ...existingPosts];
+
+      // Save back to localStorage
+      localStorage.setItem("crud_posts", JSON.stringify(updatedPosts));
+
       toast.success("Post created successfully!");
+
       setTitle("");
       setBody("");
       navigate("/posts");
-      console.log(response.data);
     } catch (error) {
       toast.error("Failed to create post");
     } finally {
